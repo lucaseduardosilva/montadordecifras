@@ -1,232 +1,330 @@
 <!DOCTYPE html>
 <html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Montador de cifras - Flauta doce germanica</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Montador de cifras - Flauta doce germânica</title>
     <style>
-        body {
-            font-family: sans-serif;
-            margin: 20px;
-        }
+      body {
+        font-family: sans-serif;
+        margin: 20px;
+      }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-        }
+      .container {
+        display: flex;
+      }
 
-        .line {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-        }
+      .column {
+        display: flex;
+        flex-direction: column;
+        margin-right: 10px;
+      }
 
-        .image-container {
-            position: relative;
-            margin-right: 10px;
-        }
+      .column.hidden-controls {
+        margin-right: 20px;
+      }
 
-        .image-container img {
-            max-width: 100px;
-            height: auto;
-        }
+      .line {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
 
-        .remove-btn {
-            position: absolute;
-            top: 0;
-            right: 0;
-            background: none;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            color: red;
-        }
+      .fixed-line {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+
+      .image-container {
+        position: relative;
+        margin-right: 10px;
+      }
+
+      .image-container img {
+        max-width: 100px;
+        height: auto;
+      }
+
+      .remove-btn {
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: red;
+      }
+
+      .add-column-btn {
+        margin-top: 10px;
+        display: block;
+        margin-left: auto;
+      }
+      .hide-controls-btn {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
+    <button class="hide-controls-btn" id="hide-controls-btn">🙈</button>
     <div class="container">
+      <div class="column" id="main-column">
         <div id="current-line" class="line">
-            <select id="image-select">
-                <option value="" disabled selected>Selecione uma imagem</option>
-            </select>
-            <button id="next-line-btn">Próxima Linha</button>
-            <button id="conclude-btn">Concluir</button>
+          <select id="image-select">
+            <option value="" disabled selected>Selecione uma imagem</option>
+          </select>
+          <button id="next-line-btn">Próxima Linha</button>
+          <button id="conclude-btn">Concluir</button>
         </div>
-        <div id="lines-container">
-            <!-- As linhas adicionadas irão aqui -->
-        </div>
+        <div id="lines-container"></div>
+      </div>
+      <button id="add-column-btn" class="add-column-btn">
+        Adicionar Coluna
+      </button>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const imageSelect = document.getElementById('image-select');
-            const nextLineBtn = document.getElementById('next-line-btn');
-            const concludeBtn = document.getElementById('conclude-btn');
-            const linesContainer = document.getElementById('lines-container');
-            let currentLine = document.getElementById('current-line');
-            let isConcluded = false;
-            let currentLineImages = [];
+      document.addEventListener("DOMContentLoaded", function () {
+        const imageSelect = document.getElementById("image-select");
+        const nextLineBtn = document.getElementById("next-line-btn");
+        const concludeBtn = document.getElementById("conclude-btn");
+        const linesContainer = document.getElementById("lines-container");
+        const container = document.querySelector(".container");
+        const addColumnBtn = document.getElementById("add-column-btn");
+        let currentLine = document.getElementById("current-line");
+        let isConcluded = false;
+        let currentLineImages = [];
+        let currentColumn = document.getElementById("main-column");
+        const hideControlsBtn = document.getElementById("hide-controls-btn");
+        let controlsVisible = true;
 
-            const images = [
-                { name: 'do.jpeg', src: 'images/do.jpeg' },
-                { name: 'DO.jpeg', src: 'images/DO.jpeg' },
-                { name: 'do# ou reb.jpeg', src: 'images/do%23 ou reb.jpeg' },
-                { name: 'DO# ou REB.jpeg', src: 'images/DO%23 ou REb.jpeg' },
-                { name: 'fa.jpeg', src: 'images/fa.jpeg' },
-                { name: 'FA.jpeg', src: 'images/FA.jpeg' },
-                { name: 'fa# ou solb.jpeg', src: 'images/fa%23 ou solb.jpeg' },
-                { name: 'FA# ou SOLb.jpeg', src: 'images/FA%23 ou SOLb.jpeg' },
-                { name: 'la.jpeg', src: 'images/la.jpeg' },
-                { name: 'LA.jpeg', src: 'images/LA.jpeg' },
-                { name: 'la# ou sib.jpeg', src: 'images/la%23 ou sib.jpeg' },
-                { name: 'LA# ou Sib.jpeg', src: 'images/LA%23 ou SIb.jpeg' },
-                { name: 'mi.jpeg', src: 'images/mi.jpeg' },
-                { name: 'MI.jpeg', src: 'images/MI.jpeg' },
-                { name: 're.jpeg', src: 'images/re.jpeg' },
-                { name: 'RE.jpeg', src: 'images/RE.jpeg' },
-                { name: 're# ou mib.jpeg', src: 'images/re%23 ou mib.jpeg' },
-                { name: 'RE# ou Mib.jpeg', src: 'images/RE%23 ou MIb.jpeg' },
-                 { name: 'si.jpeg', src: 'images/si.jpeg' },
-                { name: 'SI.jpeg', src: 'images/SI.jpeg' },
-                { name: 'sol.jpeg', src: 'images/sol.jpeg' },
-                { name: 'SOL.jpeg', src: 'images/SOL.jpeg' },
-                { name: 'sol# ou lab.jpeg', src: 'images/sol%23 ou lab.jpeg' },
-                { name: 'SOL# ou LAb.jpeg', src: 'images/SOL%23 ou LAb.jpeg' },
-            ];
+        const images = [
+          { name: "do.jpeg", src: "images/do.jpeg" },
+          { name: "fa.jpeg", src: "images/fa.jpeg" },
+          { name: "la.jpeg", src: "images/la.jpeg" },
+          { name: "mi.jpeg", src: "images/mi.jpeg" },
+          { name: "re.jpeg", src: "images/re.jpeg" },
+          { name: "si.jpeg", src: "images/si.jpeg" },
+          { name: "sol.jpeg", src: "images/sol.jpeg" },
+          { name: "DO.jpeg", src: "images/DO.jpeg" },
+          { name: "FA.jpeg", src: "images/FA.jpeg" },
+          { name: "LA.jpeg", src: "images/LA.jpeg" },
+          { name: "MI.jpeg", src: "images/MI.jpeg" },
+          { name: "RE.jpeg", src: "images/RE.jpeg" },
+          { name: "SI.jpeg", src: "images/SI.jpeg" },
+          { name: "SOL.jpeg", src: "images/SOL.jpeg" },
+          { name: "do# ou reb.jpeg", src: "images/do%23 ou reb.jpeg" },
+          { name: "fa# ou solb.jpeg", src: "images/fa%23 ou solb.jpeg" },
+          { name: "la# ou sib.jpeg", src: "images/la%23 ou sib.jpeg" },
+          { name: "re# ou mib.jpeg", src: "images/re%23 ou mib.jpeg" },
+          { name: "sol# ou lab.jpeg", src: "images/sol%23 ou lab.jpeg" },
+          { name: "DO# ou REB.jpeg", src: "images/DO%23 ou REb.jpeg" },
+          { name: "FA# ou SOLb.jpeg", src: "images/FA%23 ou SOLb.jpeg" },
+          { name: "LA# ou Sib.jpeg", src: "images/LA%23 ou SIb.jpeg" },
+          { name: "RE# ou Mib.jpeg", src: "images/RE%23 ou MIb.jpeg" },
+          { name: "SOL# ou LAb.jpeg", src: "images/SOL%23 ou LAb.jpeg" },
+        ];
 
-            // Preencher o select com as opções de imagem
-            images.forEach(image => {
-                const option = document.createElement('option');
-                option.value = image.src;
-                option.textContent = image.name;
-                imageSelect.appendChild(option);
-            });
+        images.forEach((image) => {
+          const option = document.createElement("option");
+          option.value = image.src;
+          option.textContent = image.name;
+          imageSelect.appendChild(option);
+        });
 
-             // Função para adicionar uma imagem na linha atual
-            function addImageToLine(imageSrc, imageName, targetLine) {
-                const imageContainer = document.createElement('div');
-                imageContainer.classList.add('image-container');
+        function addImageToLine(imageSrc, imageName, targetLine) {
+          const imageContainer = document.createElement("div");
+          imageContainer.classList.add("image-container");
 
-                const img = document.createElement('img');
-                img.src = imageSrc;
-                img.alt = imageName;
-                imageContainer.appendChild(img);
+          const img = document.createElement("img");
+          img.src = imageSrc;
+          img.alt = imageName;
+          imageContainer.appendChild(img);
 
-                const removeBtn = document.createElement('button');
-                removeBtn.classList.add('remove-btn');
-                removeBtn.textContent = 'x';
-                removeBtn.onclick = function() {
-                     imageContainer.remove();
-                    const index = currentLineImages.findIndex(img => img.src === imageSrc);
-                    if(index > -1) currentLineImages.splice(index,1);
-                };
-                imageContainer.appendChild(removeBtn);
-                targetLine.insertBefore(imageContainer,targetLine.querySelector('select'));
+          const removeBtn = document.createElement("button");
+          removeBtn.classList.add("remove-btn");
+          removeBtn.textContent = "x";
+          removeBtn.onclick = function () {
+            imageContainer.remove();
+            const index = currentLineImages.findIndex(
+              (img) => img.src === imageSrc
+            );
+            if (index > -1) currentLineImages.splice(index, 1);
+          };
+          imageContainer.appendChild(removeBtn);
+          targetLine.insertBefore(
+            imageContainer,
+            targetLine.querySelector("select")
+          );
+        }
+
+        function setupLine(line) {
+          const currentSelect = line.querySelector("select");
+
+          currentSelect.addEventListener("change", function () {
+            if (!isConcluded) {
+              const selectedImageSrc = this.value;
+              const selectedImageName = this.options[this.selectedIndex].text;
+              addImageToLine(selectedImageSrc, selectedImageName, line);
+              currentLineImages.push({
+                src: selectedImageSrc,
+                name: selectedImageName,
+              });
+              this.selectedIndex = 0;
             }
+          });
 
-              function setupLine(line) {
-              const currentSelect = line.querySelector('select');
+          const nextLineButtonNew = line.querySelector("#next-line-btn");
+          const concludeButtonNew = line.querySelector("#conclude-btn");
+          nextLineButtonNew.addEventListener("click", () => handleNextLine());
+          concludeButtonNew.addEventListener("click", () => handleConclude());
+        }
 
-                    currentSelect.addEventListener('change', function() {
-                            if(!isConcluded) {
-                            const selectedImageSrc = this.value;
-                            const selectedImageName = this.options[this.selectedIndex].text;
-                            addImageToLine(selectedImageSrc, selectedImageName, line);
-                            currentLineImages.push({src: selectedImageSrc, name: selectedImageName});
-                                this.selectedIndex = 0;
-                            }
-                    });
-
-
-             const nextLineButtonNew = line.querySelector('#next-line-btn');
-                const concludeButtonNew = line.querySelector('#conclude-btn');
-                    nextLineButtonNew.addEventListener('click', () => handleNextLine());
-                    concludeButtonNew.addEventListener('click', () => handleConclude());
-             }
-
-
-            imageSelect.addEventListener('change', function() {
-                if(!isConcluded) {
-                    const selectedImageSrc = this.value;
-                    const selectedImageName = this.options[this.selectedIndex].text;
-                    addImageToLine(selectedImageSrc, selectedImageName,currentLine);
-                    currentLineImages.push({src: selectedImageSrc, name: selectedImageName});
-                     this.selectedIndex = 0;
-                }
+        imageSelect.addEventListener("change", function () {
+          if (!isConcluded) {
+            const selectedImageSrc = this.value;
+            const selectedImageName = this.options[this.selectedIndex].text;
+            addImageToLine(selectedImageSrc, selectedImageName, currentLine);
+            currentLineImages.push({
+              src: selectedImageSrc,
+              name: selectedImageName,
             });
+            this.selectedIndex = 0;
+          }
+        });
 
-           function handleNextLine() {
-               if (!isConcluded) {
-                    // Clone a linha atual para fixá-la
-                    const fixedLine = currentLine.cloneNode(true);
-                    fixedLine.classList.add('fixed-line'); // Adicione classe para estilos, se necessário
+        function handleNextLine() {
+          if (!isConcluded) {
+            const fixedLine = currentLine.cloneNode(true);
+            fixedLine.classList.add("fixed-line");
 
-                    // Remover botões de remoção
-                    fixedLine.querySelectorAll('.remove-btn').forEach(btn => btn.remove());
+            fixedLine
+              .querySelectorAll(".remove-btn")
+              .forEach((btn) => btn.remove());
 
-                    // Remover seletor e botões
-                    const selectElement = fixedLine.querySelector('select');
-                    const nextLineElement = fixedLine.querySelector('#next-line-btn');
-                    const concludeElement = fixedLine.querySelector('#conclude-btn');
-                    selectElement.remove();
-                    nextLineElement.remove();
-                    concludeElement.remove();
+            const selectElement = fixedLine.querySelector("select");
+            const nextLineElement = fixedLine.querySelector("#next-line-btn");
+            const concludeElement = fixedLine.querySelector("#conclude-btn");
+            selectElement.remove();
+            nextLineElement.remove();
+            concludeElement.remove();
 
-                    linesContainer.appendChild(fixedLine);
+            currentColumn
+              .querySelector("#lines-container")
+              .appendChild(fixedLine);
 
-                    // Limpar a linha atual para uma nova
-                    currentLine.innerHTML = `
+            currentLine.innerHTML = `
                     <select id="image-select">
                         <option value="" disabled selected>Selecione uma imagem</option>
                     </select>
                     <button id="next-line-btn">Próxima Linha</button>
                     <button id="conclude-btn">Concluir</button>
                  `;
-               
-                  // Adicionar as novas seleções de imagens na nova linha
-                     const newImageSelect = currentLine.querySelector('#image-select');
-                    images.forEach(image => {
-                    const option = document.createElement('option');
-                    option.value = image.src;
-                    option.textContent = image.name;
-                    newImageSelect.appendChild(option);
-                    });
 
-                     currentLineImages = [];
+            const newImageSelect = currentLine.querySelector("#image-select");
+            images.forEach((image) => {
+              const option = document.createElement("option");
+              option.value = image.src;
+              option.textContent = image.name;
+              newImageSelect.appendChild(option);
+            });
 
-                    setupLine(currentLine);
-                }
-            }
+            currentLineImages = [];
 
-           function handleConclude() {
-                 if (!isConcluded) {
-                   const fixedLine = currentLine.cloneNode(true);
-                    fixedLine.classList.add('fixed-line');
-
-                    // Remover botões de remoção
-                    fixedLine.querySelectorAll('.remove-btn').forEach(btn => btn.remove());
-
-                    // Remover seletor e botões
-                    const selectElement = fixedLine.querySelector('select');
-                    const nextLineElement = fixedLine.querySelector('#next-line-btn');
-                    const concludeElement = fixedLine.querySelector('#conclude-btn');
-                    selectElement.remove();
-                    nextLineElement.remove();
-                    concludeElement.remove();
-
-                    linesContainer.appendChild(fixedLine);
-
-                    isConcluded = true;
-                    currentLine.style.display = 'none';
-
-                }
-            }
-
-              nextLineBtn.addEventListener('click', handleNextLine);
-            concludeBtn.addEventListener('click', handleConclude);
-            
             setupLine(currentLine);
+          }
+        }
 
-        });
+        function handleConclude() {
+          if (!isConcluded) {
+            const fixedLine = currentLine.cloneNode(true);
+            fixedLine.classList.add("fixed-line");
+
+            fixedLine
+              .querySelectorAll(".remove-btn")
+              .forEach((btn) => btn.remove());
+
+            const selectElement = fixedLine.querySelector("select");
+            const nextLineElement = fixedLine.querySelector("#next-line-btn");
+            const concludeElement = fixedLine.querySelector("#conclude-btn");
+            selectElement.remove();
+            nextLineElement.remove();
+            concludeElement.remove();
+
+            currentColumn
+              .querySelector("#lines-container")
+              .appendChild(fixedLine);
+
+            isConcluded = true;
+            currentLine.style.display = "none";
+          }
+        }
+
+        function handleAddColumn() {
+          const newColumn = document.createElement("div");
+          newColumn.classList.add("column");
+          if (!controlsVisible) {
+            newColumn.classList.add("hidden-controls");
+          }
+          newColumn.innerHTML = `
+                     <div id="current-line" class="line">
+                        <select id="image-select">
+                            <option value="" disabled selected>Selecione uma imagem</option>
+                        </select>
+                        <button id="next-line-btn">Próxima Linha</button>
+                        <button id="conclude-btn">Concluir</button>
+                    </div>
+                    <div id="lines-container">
+                    </div>
+                `;
+          container.insertBefore(newColumn, addColumnBtn);
+          currentColumn = newColumn;
+          isConcluded = false;
+          currentLine = newColumn.querySelector("#current-line");
+
+          const newImageSelect = currentLine.querySelector("#image-select");
+          images.forEach((image) => {
+            const option = document.createElement("option");
+            option.value = image.src;
+            option.textContent = image.name;
+            newImageSelect.appendChild(option);
+          });
+
+          currentLineImages = [];
+
+          setupLine(currentLine);
+        }
+
+        function toggleControls() {
+          const allColumns = document.querySelectorAll(".column");
+
+          allColumns.forEach((column) => {
+            column.classList.toggle("hidden-controls");
+          });
+          const allControls = document.querySelectorAll("select, button");
+
+          allControls.forEach((control) => {
+            if (control !== hideControlsBtn) {
+              control.style.display = controlsVisible ? "none" : "";
+            }
+          });
+          controlsVisible = !controlsVisible;
+        }
+
+        nextLineBtn.addEventListener("click", handleNextLine);
+        concludeBtn.addEventListener("click", handleConclude);
+        addColumnBtn.addEventListener("click", handleAddColumn);
+        hideControlsBtn.addEventListener("click", toggleControls);
+
+        setupLine(currentLine);
+      });
     </script>
-</body>
+  </body>
 </html>
